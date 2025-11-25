@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calorie Analyzer</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0 0 0 / 10%);
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        .input-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .input-fields {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .input-fields label {
+            font-weight: bold;
+            flex-basis: 150px; /* Give labels a fixed width */
+            flex-shrink: 0; /* Prevent labels from shrinking */
+        }
+        .input-fields select,
+        .input-fields input[type="number"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            flex-grow: 1; /* Allow inputs to take available space */
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .button-group button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+        }
+        button#add-item-btn {
+            background-color: #28a745; /* Green */
+            color: white;
+        }
+        button#add-item-btn:hover {
+            background-color: #218838;
+        }
+        button#analyze-btn {
+            background-color: #007bff; /* Blue */
+            color: white;
+        }
+        button#analyze-btn:hover {
+            background-color: #0056b3;
+        }
+         button#clear-meal-btn {
+            background-color: #6c757d; /* Grey */
+            color: white;
+        }
+        button#clear-meal-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .current-meal-section {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .current-meal-section h2 {
+             margin-top: 0;
+        }
+        .meal-list {
+            list-style: none;
+            padding: 0;
+        }
+        .meal-list-item {
+             background-color: #e9e9e9;
+             padding: 10px;
+             margin-bottom: 8px;
+             border-radius: 4px;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             font-size: 1.1rem;
+        }
+         .meal-list-item .remove-item {
+             background-color: #dc3545; /* Red for Remove button */
+             color: white;
+             border: none;
+             border-radius: 4px;
+             cursor: pointer;
+             padding: 5px 10px;
+             font-size: 0.9rem;
+             margin-left: 15px; /* Space between text and button */
+         }
+        .meal-list-item .remove-item:hover {
+             background-color: #c82333;
+        }
+         /* Style for the no items message when hidden */
+         #no-items-message {
+             font-style: italic;
+             color: #666;
+         }
+
+        .results-section {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+         .results-section h2 {
+             margin-top: 0;
+         }
+        .results-list {
+            list-style: none;
+            padding: 0;
+        }
+        .results-list li {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #ccc;
+        }
+         .results-list li:last-child {
+             border-bottom: none;
+             padding-bottom: 0;
+         }
+        .results-list strong {
+            color: #0056b3;
+        }
+         .results-list ul {
+             list-style: disc;
+             margin-top: 5px;
+             padding-left: 20px;
+             font-size: 0.95rem;
+         }
+          .results-list ul li {
+              border-bottom: none;
+              padding-bottom: 0;
+              margin-bottom: 4px;
+          }
+
+
+         .error {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+         }
+         #loading-indicator {
+            display: none; /* Hidden by default */
+            margin-top: 15px;
+            font-style: italic;
+            color: #555;
+            text-align: center;
+         }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calorie Analyzer</h1>
+
+        <div class="input-section">
+             <h2>Add Item to Meal</h2>
+            <div class="input-fields">
+                <label for="food-item-select">Select Food Item:</label>
+                <select id="food-item-select">
+                    <option value="">-- Select Food Item --</option>
+                    {% for item in food_items %}
+                        <option value="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="input-fields">
+                 <label for="quantity-input">Quantity (grams):</label>
+                 <input type="number" id="quantity-input" placeholder="e.g., 150.00" min="0" max="1000000" step="0.01">
+            </div>
+             <p id="add-item-error" class="error"></p>
+
+            <div class="button-group">
+                 <!-- Corrected line: Added onclick="addMealItem()" -->
+                 <button id="add-item-btn" onclick="addMealItem()">Add to Meal</button>
+                 <button id="clear-meal-btn" onclick="clearMeal()">Clear Meal</button>
+                 <button id="analyze-btn" onclick="analyzeMeal()">Calculate Calories and relevant Statistics</button>
+            </div>
+            <p id="analyze-error" class="error"></p>
+            <p id="loading-indicator">Analyzing...</p>
+
+        </div>
+
+
+        <div class="current-meal-section">
+             <h2>Current Meal Items:</h2>
+             <ul id="meal-list" class="meal-list">
+                <!-- Meal items will be listed here by JavaScript -->
+                 <li id="no-items-message">No items added yet.</li>
+             </ul>
+        </div>
+
+
+        <div id="analysis-results" class="results-section">
+            <h2>Calculation Results:</h2>
+            <div id="results-content">
+                <!-- Analysis results will be displayed here -->
+                <p>Add items to your meal and click "Calculate" to see results.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mealItems = []; // Array to store the meal items added
+
+        // Function to add a meal item to the list
+        function addMealItem() {
+            const foodItemSelect = document.getElementById('food-item-select');
+            const quantityInput = document.getElementById('quantity-input');
+             const addItemError = document.getElementById('add-item-error');
+
+
+            const foodItem = foodItemSelect.value;
+            const quantity = parseFloat(quantityInput.value); // Convert to number
+
+            // Basic validation
+            if (!foodItem) {
+                 addItemError.textContent = 'Please select a food item.';
+                 return;
+            }
+            // Allow quantity to be 0 but validate it's a number
+            if (isNaN(quantity) || quantity < 0) {
+                 addItemError.textContent = 'Please enter a valid quantity in grams (0 or more).';
+                 return;
+            }
+
+            addItemError.textContent = ''; // Clear previous errors
+
+            // Add the item to the mealItems array
+            mealItems.push({ food_item: foodItem, quantity: quantity });
+
+            // Clear input fields
+            foodItemSelect.value = '';
+            quantityInput.value = '';
+            foodItemSelect.focus(); // Set focus back to select for easier adding
+
+            // Update the displayed meal list
+            renderMealList();
+
+             // Clear results and analyze error when a new item is added
+            document.getElementById('results-content').innerHTML = '<p>Add items to your meal and click "Calculate" to see results.</p>';
+            document.getElementById('analyze-error').textContent = '';
+
+        }
+
+         // Function to render the meal list on the page
+         function renderMealList() {
+            const mealListUl = document.getElementById('meal-list');
+            const noItemsMessage = document.getElementById('no-items-message');
+
+            // --- Corrected Logic ---
+            // Clear all items EXCEPT the 'no-items-message' if it exists
+            let existingNoItemsMessage = mealListUl.querySelector('#no-items-message');
+             if (existingNoItemsMessage) {
+                mealListUl.innerHTML = ''; // Clear everything first
+                mealListUl.appendChild(existingNoItemsMessage); // Add the message back
+             } else {
+                 mealListUl.innerHTML = ''; // Clear all items if message wasn't there
+             }
+
+
+            if (mealItems.length === 0) {
+                // If there are no items, make sure the message is visible
+                if (!existingNoItemsMessage) {
+                     existingNoItemsMessage = document.createElement('li');
+                     existingNoItemsMessage.id = 'no-items-message';
+                     existingNoItemsMessage.textContent = 'No items added yet.';
+                     mealListUl.appendChild(existingNoItemsMessage);
+                }
+                existingNoItemsMessage.style.display = 'list-item';
+
+            } else {
+                 // If there are items, hide the message and add the actual items
+                 if (existingNoItemsMessage) {
+                     existingNoItemsMessage.style.display = 'none';
+                 }
+                 mealItems.forEach((item, index) => {
+                    const itemElement = document.createElement('li');
+                    itemElement.classList.add('meal-list-item');
+                     // Display quantity with two decimal places
+                    itemElement.innerHTML = `
+                        ${item.food_item} (${item.quantity.toFixed(2)}g)
+                        <button class="remove-item" onclick="removeMealItem(${index})">Remove</button>
+                    `;
+                    mealListUl.appendChild(itemElement);
+                });
+            }
+         }
+
+         // Function to remove an item from the meal list
+         function removeMealItem(index) {
+            mealItems.splice(index, 1); // Remove item at the given index
+            renderMealList(); // Re-render the list
+             // Clear analysis results if the meal list changes after analysis
+             document.getElementById('results-content').innerHTML = '<p>Add items to your meal and click "Calculate" to see results.</p>';
+             document.getElementById('analyze-error').textContent = '';
+         }
+
+        // Function to clear the current meal
+        function clearMeal() {
+            mealItems = []; // Empty the mealItems array
+            renderMealList(); // Update the displayed list
+            // Clear results and errors
+            document.getElementById('results-content').innerHTML = '<p>Add items to your meal and click "Calculate" to see results.</p>';
+            document.getElementById('add-item-error').textContent = '';
+            document.getElementById('analyze-error').textContent = '';
+        }
+
+
+        // Function to send meal data to the backend for analysis
+        async function analyzeMeal() {
+            const resultsContentDiv = document.getElementById('results-content');
+            const analyzeErrorDiv = document.getElementById('analyze-error');
+            const loadingIndicator = document.getElementById('loading-indicator');
+
+
+            analyzeErrorDiv.textContent = ''; // Clear previous errors
+             resultsContentDiv.innerHTML = ''; // Clear previous results content
+
+
+            if (mealItems.length === 0) {
+                 analyzeErrorDiv.textContent = 'Please add some items to the meal before calculating.';
+                 return;
+            }
+
+             loadingIndicator.style.display = 'block'; // Show loading indicator
+             document.getElementById('add-item-btn').disabled = true; // Disable add button
+             document.getElementById('analyze-btn').disabled = true; // Disable analyze button
+             document.getElementById('clear-meal-btn').disabled = true; // Disable clear button
+
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ meal_items: mealItems })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                     // Handle server-side errors returned as JSON
+                     analyzeErrorDiv.textContent = data.error || 'An error occurred during analysis.';
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                analyzeErrorDiv.textContent = 'Could not connect to the server or an error occurred.';
+            } finally {
+                 loadingIndicator.style.display = 'none'; // Hide loading indicator
+                 document.getElementById('add-item-btn').disabled = false; // Re-enable add button
+                 document.getElementById('analyze-btn').disabled = false; // Re-enable analyze button
+                 document.getElementById('clear-meal-btn').disabled = false; // Re-enable clear button
+            }
+        }
+
+        // Function to display analysis results on the page
+        function displayResults(results) {
+            const resultsContentDiv = document.getElementById('results-content');
+            resultsContentDiv.innerHTML = '<ul class="results-list"></ul>'; // Use a ul for results list
+            const resultsListUl = resultsContentDiv.querySelector('ul');
+
+
+            if (results.error) {
+                resultsContentDiv.innerHTML = `<p class="error">${results.error}</p>`;
+                return;
+            }
+
+            // (i) Sum of the "Calories per 100g" Values for Each Selected Food Type (Sum)
+            if (results.total_calories_in_selected_food_items_per_100g_sum !== undefined) {
+                 resultsListUl.innerHTML += `
+                    <li><strong>(i) Sum of the "Calories per 100g" Values for Each Selected Food Type:</strong> ${results.total_calories_in_selected_food_items_per_100g_sum.toFixed(2)} kcal/100g (Sum)</li>
+                 `;
+             }
+
+
+            // (ii) Total Calories for the Meal (based on quantity)
+            if (results.total_calories !== undefined) {
+                resultsListUl.innerHTML += `
+                    <li><strong>(ii) Total Calories for the Meal (based on quantity):</strong> ${results.total_calories.toFixed(2)} kcal</li>
+                `;
+            }
+
+
+            resultsListUl.innerHTML += `<li><h3>Summary Statistics for Selected Food Items (Calories per 100g):</h3></li>`;
+
+            // (iii) Average Calories
+             if (results.average_calories_per_100g !== undefined && results.average_calories_per_100g !== null) {
+                 resultsListUl.innerHTML += `
+                    <li><strong>(iii) Average Calories (per 100g of selected foods):</strong> ${results.average_calories_per_100g.toFixed(2)} kcal/100g</li>
+                 `;
+             } else {
+                 resultsListUl.innerHTML += `<li><strong>(iii) Average Calories (per 100g of selected foods):</strong> N/A</li>`;
+             }
+
+            // (iv) Median Calories
+             if (results.median_calories_per_100g !== undefined && results.median_calories_per_100g !== null) {
+                resultsListUl.innerHTML += `
+                    <li><strong>(iv) Median Calories (per 100g of selected foods):</strong> ${results.median_calories_per_100g.toFixed(2)} kcal/100g</li>
+                `;
+             } else {
+                 resultsListUl.innerHTML += `<li><strong>(iv) Median Calories (per 100g of selected foods):</strong> N/A</li>`;
+             }
+
+            // (v) Min. Calories
+             if (results.min_calories_per_100g !== undefined && results.min_calories_per_100g !== null) {
+                 resultsListUl.innerHTML += `
+                    <li><strong>(v) Min. Calories (per 100g of selected foods):</strong> ${results.min_calories_per_100g.toFixed(2)} kcal/100g</li>
+                `;
+             } else {
+                 resultsListUl.innerHTML += `<li><strong>(v) Min. Calories (per 100g of selected foods):</strong> N/A</li>`;
+             }
+
+            // (vi) Maximum Calories
+             if (results.max_calories_per_100g !== undefined && results.max_calories_per_100g !== null) {
+                 resultsListUl.innerHTML += `
+                    <li><strong>(vi) Maximum Calories (per 100g of selected foods):</strong> ${results.max_calories_per_100g.toFixed(2)} kcal/100g</li>
+                 `;
+             } else {
+                 resultsListUl.innerHTML += `<li><strong>(vi) Maximum Calories (per 100g of selected foods):</strong> N/A</li>`;
+             }
+
+            // (vii) Standard Deviation
+             if (results.std_deviation_calories_per_100g !== undefined && results.std_deviation_calories_per_100g !== null) {
+                 resultsListUl.innerHTML += `
+                    <li><strong>(vii) Standard Deviation (of selected foods' per 100g calories):</strong> ${results.std_deviation_calories_per_100g.toFixed(2)}</li>
+                 `;
+             } else {
+                  resultsListUl.innerHTML += `<li><strong>(vii) Standard Deviation (of selected foods' per 100g calories):</strong> N/A</li>`;
+             }
+
+
+            // (viii) Highest Calorie Foods in Selection
+            resultsListUl.innerHTML += `
+                <li><strong>(viii) Highest Calorie Foods (among selected items, per 100g):</strong>
+                <ul>
+            `;
+            if (results.highest_calorie_foods_in_selection && results.highest_calorie_foods_in_selection.length > 0) {
+                results.highest_calorie_foods_in_selection.forEach(food => {
+                    resultsListUl.innerHTML += `<li>${food.food_item}: ${food.calories_per_100g.toFixed(2)} kcal/100g</li>`;
+                });
+            } else {
+                resultsListUl.innerHTML += `<li>None</li>`;
+            }
+            resultsListUl.innerHTML += `</ul></li>`;
+
+            // (ix) Lowest Calorie Foods in Selection
+            resultsListUl.innerHTML += `
+                <li><strong>(ix) Lowest Calorie Foods (among selected items, per 100g):</strong>
+                <ul>
+            `;
+            if (results.lowest_calorie_foods_in_selection && results.lowest_calorie_foods_in_selection.length > 0) {
+                results.lowest_calorie_foods_in_selection.forEach(food => {
+                    resultsListUl.innerHTML += `<li>${food.food_item}: ${food.calories_per_100g.toFixed(2)} kcal/100g</li>`;
+                });
+            } else {
+                resultsListUl.innerHTML += `<li>None</li>`;
+            }
+             resultsListUl.innerHTML += `</ul></li>`;
+        }
+
+         // Initial render of the meal list on page load (will be empty initially)
+         document.addEventListener('DOMContentLoaded', renderMealList);
+
+    </script>
+</body>
+</html>
